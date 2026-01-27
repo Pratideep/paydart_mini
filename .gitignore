@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# PHP
+/vendor/
+composer.lock
+
+# Environment variables
+.env
+.env.*
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
