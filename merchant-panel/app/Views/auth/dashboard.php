@@ -214,7 +214,8 @@
 
         <a href="/dashboard" class="nav-link active">Dashboard</a>
         <a href="/psp-keys" class="nav-link">PSP KEYS</a>
-        <a href="#" class="nav-link">Transactions</a>
+        <a href="/checkout" class="nav-link">Checkout</a>
+        <a href="/transactions" class="nav-link">Transactions</a>
         <a href="#" class="nav-link">Settings</a>
 
         <a href="<?= base_url('logout') ?>" class="logout-btn">Logout</a>

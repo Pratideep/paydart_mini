@@ -24,3 +24,11 @@ $routes->group('psp-keys',['filter'=>'auth'],function($routes){
     $routes->get('toggle/(:num)','PspKeyController::toggle/$1');
 });
 
+$routes->group('checkout', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'Checkout::index');
+    $routes->post('pay', 'Checkout::pay');
+});
+
+$routes->group('transactions', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'Transactions::index');
+});

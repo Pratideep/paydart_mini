@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Success</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f2fbf8;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+      }
+      .box {
+        width: 100%;
+        max-width: 520px;
+        background: #fff;
+        border: 1px solid #cceadf;
+        border-radius: 14px;
+        padding: 22px;
+      }
+      h1 {
+        margin: 0 0 14px;
+        color: #0b6b4e;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #e8edf5;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .key {
+        color: #516173;
+      }
+      .val {
+        font-weight: 600;
+        text-align: right;
+      }
+      a {
+        display: inline-block;
+        margin-top: 14px;
+        text-decoration: none;
+        color: #0f766e;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="box">
+      <h1>Payment Successful</h1>
+      <div class="row"><span class="key">Order ID</span><span class="val" id="order"></span></div>
+      <div class="row"><span class="key">Amount</span><span class="val" id="amount"></span></div>
+      <div class="row"><span class="key">PSP Used</span><span class="val" id="psp"></span></div>
+      <div class="row"><span class="key">Transaction Ref</span><span class="val" id="tx"></span></div>
+      <a href="./checkout.html">Make another payment</a>
+    </section>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      document.getElementById("order").textContent = params.get("order_id") || "-";
+      document.getElementById("amount").textContent = `${params.get("currency") || ""} ${params.get("amount") || "-"}`;
+      document.getElementById("psp").textContent = params.get("psp_used") || "-";
+      document.getElementById("tx").textContent = params.get("transaction_ref") || "-";
+    </script>
+  </body>
+</html>

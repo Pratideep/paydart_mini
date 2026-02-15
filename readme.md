@@ -263,3 +263,60 @@ MIT License — free to use, modify, and learn from.
 Backend • Systems • Fintech Enthusiast
 
 
+
+## 📘 Project Working Notes (How It Works + Concepts)
+
+### End-to-end flow
+
+1. Merchant logs in to `merchant-panel`.
+2. Merchant configures PSPs (`active` / `inactive`, optional priority) in `merchant_psp_keys`.
+3. Merchant opens `/checkout`, enters order details, and selects PSP.
+4. `merchant-panel` sends `POST /api/pay` to `payment-router`.
+5. `payment-router` validates input, selects the PSP, runs handler (`stripe`/`paypal` mock), and saves the transaction.
+6. Merchant sees success/failure in checkout and can view records in `/transactions`.
+
+### Core concepts used
+
+1. Service separation:
+   `merchant-panel` handles auth/UI; `payment-router` handles routing/payment processing.
+2. Shared DB integration:
+   both services use the same `paydart_mini` database.
+3. Merchant isolation:
+   all PSP and transactions are filtered by logged-in `merchant_id`.
+4. PSP abstraction:
+   each PSP is a handler module, making new PSP integration extensible.
+5. Routing strategy:
+   router can use active PSP list + optional preferred PSP from checkout.
+6. Schema compatibility:
+   transaction insert supports DB variants (`psp_used` or `psp_name`).
+
+### Important routes
+
+- Merchant panel:
+  - `GET /checkout`
+  - `POST /checkout/pay`
+  - `GET /transactions`
+- Payment router:
+  - `GET /health`
+  - `GET /api/psps/:merchantId`
+  - `POST /api/pay`
+
+### Current module mapping
+
+- `payment-router/server.js`:
+  API routes, routing logic, transaction save.
+- `payment-router/db.js`:
+  MySQL pool + query helper.
+- `payment-router/psp/psp1.js`, `payment-router/psp/psp2.js`:
+  mock PSP handlers.
+- `merchant-panel/app/Controllers/Checkout.php`:
+  checkout submit + router API call.
+- `merchant-panel/app/Controllers/Transactions.php`:
+  merchant payment history.
+- `merchant-panel/app/Views/auth/checkout.php`:
+  checkout UI.
+- `merchant-panel/app/Views/auth/transactions.php`:
+  payment history UI.
+
+
+Paydart Mini demonstrates a two-service payment architecture where a PHP merchant app manages configuration and UX while a Node router performs PSP routing and transaction recording through a shared database.

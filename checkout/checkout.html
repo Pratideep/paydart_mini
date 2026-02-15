@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paydart Mini Checkout</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #101827;
+        --muted: #5e6a7d;
+        --brand: #0f766e;
+        --brand-2: #115e59;
+        --danger: #b42318;
+        --border: #d6dde7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(180deg, #eef3ff 0%, var(--bg) 100%);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+      }
+      .card {
+        width: 100%;
+        max-width: 480px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+      }
+      p {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+      label {
+        display: block;
+        margin: 12px 0 6px;
+        font-weight: 600;
+        font-size: 0.92rem;
+      }
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 11px 12px;
+        font-size: 0.96rem;
+        outline: none;
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--brand);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      button {
+        margin-top: 18px;
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 12px;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--brand-2);
+      }
+      button:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+      }
+      .error {
+        margin-top: 12px;
+        color: var(--danger);
+        font-size: 0.9rem;
+        min-height: 20px;
+      }
+      .hint {
+        margin-top: 10px;
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+      @media (max-width: 480px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Checkout</h1>
+      <p>Submit a test payment to your Node payment router.</p>
+
+      <form id="payForm">
+        <label for="merchantId">Merchant ID</label>
+        <input id="merchantId" type="number" min="1" value="1" required />
+
+        <label for="orderId">Order ID</label>
+        <input id="orderId" type="text" required />
+
+        <div class="row">
+          <div>
+            <label for="amount">Amount</label>
+            <input id="amount" type="number" min="0.01" step="0.01" value="499.99" required />
+          </div>
+          <div>
+            <label for="currency">Currency</label>
+            <select id="currency">
+              <option value="INR">INR</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="apiBase">API Base URL</label>
+        <input id="apiBase" type="text" value="http://localhost:3000" required />
+        <div class="hint">Use your router URL. Default is <code>http://localhost:3000</code>.</div>
+
+        <button id="payBtn" type="submit">Pay Now</button>
+        <div id="error" class="error"></div>
+      </form>
+    </main>
+
+    <script>
+      const form = document.getElementById("payForm");
+      const payBtn = document.getElementById("payBtn");
+      const errorEl = document.getElementById("error");
+      const orderInput = document.getElementById("orderId");
+
+      orderInput.value = `ORD-${Date.now()}`;
+
+      function toQuery(params) {
+        const url = new URLSearchParams();
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) url.set(k, String(v));
+        });
+        return url.toString();
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorEl.textContent = "";
+        payBtn.disabled = true;
+        payBtn.textContent = "Processing...";
+
+        const payload = {
+          merchant_id: Number(document.getElementById("merchantId").value),
+          order_id: document.getElementById("orderId").value.trim(),
+          amount: Number(document.getElementById("amount").value),
+          currency: document.getElementById("currency").value,
+        };
+        const apiBase = document.getElementById("apiBase").value.trim().replace(/\/+$/, "");
+
+        try {
+          const res = await fetch(`${apiBase}/api/pay`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            const qs = toQuery({
+              order_id: data.order_id,
+              amount: data.amount,
+              currency: data.currency,
+              psp_used: data.psp_used,
+              transaction_ref: data.transaction_ref,
+            });
+            window.location.href = `./sucess.html?${qs}`;
+            return;
+          }
+
+          const qs = toQuery({
+            order_id: payload.order_id,
+            amount: payload.amount,
+            currency: payload.currency,
+            message: data.message || "Payment failed",
+          });
+          window.location.href = `./fail.html?${qs}`;
+        } catch (err) {
+          errorEl.textContent = `Request failed: ${err.message}`;
+        } finally {
+          payBtn.disabled = false;
+          payBtn.textContent = "Pay Now";
+        }
+      });
+    </script>
+  </body>
+</html>
